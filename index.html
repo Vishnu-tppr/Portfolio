@@ -71,6 +71,26 @@
             opacity: 0;
         }
 
+        /* Styles for the custom cursor when in "touch mode" */
+        #custom-cursor.custom-cursor-touch-mode {
+            background-color: rgba(0, 229, 255, 0.15); /* Softer, more transparent fill */
+            border-width: 1px; /* Thinner border */
+            border-color: rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3); /* Softer shadow */
+            /* Optionally, make it slightly smaller for touch */
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Hide the inner dot when in touch mode */
+        #custom-cursor.custom-cursor-touch-mode + #custom-cursor-dot {
+            display: none !important; /* Important to override inline styles if any */
+        }
+
+        /* Adjusted glowing effect for touch mode */
+        #custom-cursor.custom-cursor-touch-mode.glowing {
+            background-color: rgba(0, 229, 255, 0.25); /* Slightly more visible glow */
+        }
 
         /* 3D Canvas */
         #bg-canvas {
@@ -396,11 +416,20 @@
                 customCursor.style.opacity = '1';
                 // Set dot opacity based on whether the cursor is currently glowing.
                 // This handles cases where mousemove happens while already over an interactive element.
-                if (customCursor.classList.contains('glowing')) {
+                if (customCursor.classList.contains('glowing') || customCursor.classList.contains('custom-cursor-touch-mode')) {
                     customCursorDot.style.opacity = '0';
                 } else {
                     customCursorDot.style.opacity = '1';
                 }
+                // Ensure dot is hidden if in touch mode, overriding the above if necessary
+                // (though the CSS with !important for display:none is stronger for the dot)
+                if (customCursor.classList.contains('custom-cursor-touch-mode')) {
+                    customCursorDot.style.display = 'none';
+                } else if (!customCursor.classList.contains('glowing')) { // only make it block if not glowing and not touch mode
+                    customCursorDot.style.display = 'block'; // Or 'inline-block' or 'flex' depending on original
+                    customCursorDot.style.opacity = '1';
+                }
+
                 cursorIsVisibleByScript = true;
             } else {
                 customCursor.style.opacity = '0';
@@ -508,6 +537,7 @@
 
         document.addEventListener('touchstart', (e) => {
             updateCursorVisibility(true);
+            customCursor.classList.add('custom-cursor-touch-mode');
             const coords = getTouchCoordinates(e);
             handleInteractionEffect(coords);
         }, { passive: true });
@@ -515,6 +545,11 @@
         document.addEventListener('touchmove', (e) => {
             if (cursorIsVisibleByScript) { // Only move if visible (i.e., touch has started)
                 const coords = getTouchCoordinates(e);
+                // Ensure touch mode class is present if a touchmove occurs
+                // (e.g., if somehow missed in touchstart or if state needs reinforcement)
+                if (!customCursor.classList.contains('custom-cursor-touch-mode')) {
+                    customCursor.classList.add('custom-cursor-touch-mode');
+                }
                 handleInteractionEffect(coords);
             }
         }, { passive: true });
@@ -522,11 +557,15 @@
         document.addEventListener('touchend', (e) => {
             customCursor.classList.remove('glowing'); // Always remove glow on touch end
             if (e.touches.length === 0) { // Only hide if all touches are gone
+                customCursor.classList.remove('custom-cursor-touch-mode');
+                customCursorDot.style.display = 'block'; // Restore dot display for desktop
                 updateCursorVisibility(false);
             }
         });
 
         // --- Precise Click Feature for About Me Image ---
+        // Definitions for aboutMeLinkElement and aboutMeImgElement are now moved
+        // to the top of the "Custom Cursor Logic" section.
         if (aboutMeLinkElement && aboutMeImgElement) {
             // Control direct clicks on the "About Me" link:
             // Only navigate if the image (aboutMeImgElement) itself is clicked.
