@@ -1,0 +1,9 @@
+Copyright (c) 2025 Vishnu
+
+All rights reserved.
+
+No part of this repository, including the code, documentation, or any content, may be copied, modified, distributed, performed, displayed, or used in any form without the explicit prior written permission of the author.
+
+No patent rights or licenses are granted by this repository or by the author.
+
+Unauthorized use, reproduction, or distribution is strictly prohibited.
