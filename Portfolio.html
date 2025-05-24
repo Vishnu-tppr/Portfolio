@@ -278,14 +278,6 @@
                 </div>
 
                 <div class="max-w-xl mx-auto">
-                    <!-- 
-                        To use a service like Formspree:
-                        1. Sign up at formspree.io
-                        2. Create a new form and get your endpoint URL (e.g., https://formspree.io/f/your_unique_code)
-                        3. Replace the '#' in action below with your Formspree endpoint URL. (DONE!)
-                        4. Change method to "POST".
-                        5. Remove the `id="contact-form"` and the JavaScript related to `contactForm.addEventListener`.
-                    -->
                     <form action="https://formspree.io/f/mgvkjwkw" method="POST" class="space-y-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-cyan-400">Full Name</label>
@@ -309,8 +301,6 @@
                             </button>
                         </div>
                     </form>
-                    <!-- Formspree will handle success/error messages, so this div is no longer strictly needed -->
-                    <!-- <div id="form-status" class="mt-4 text-center text-sm"></div> -->
                 </div> 
             </div>
         </section>
@@ -401,11 +391,6 @@
         
         // --- Update current year in footer ---
         document.getElementById('current-year').textContent = new Date().getFullYear();
-
-        // --- Contact Form Handler (mailto:) --- (REMOVED - Formspree handles submissions now)
-        // The JavaScript code that handled the mailto: link has been removed.
-
-        // Initialize Three.js scene when the DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof THREE !== 'undefined') {
                 initThreeJS();
