@@ -128,15 +128,6 @@
             /* Make it slightly brighter and add a cyan glow to complement other hovers */
             filter: grayscale(100%) invert(100%) brightness(1.3) drop-shadow(0 0 5px #00E5FF) drop-shadow(0 0 2px #00E5FF);
         }
-         /* Hide custom cursor and restore default cursor on smaller (likely touch) screens */
-        @media (max-width: 767px) { /* Corresponds to Tailwind's `md` breakpoint */
-        body {
-            cursor: auto; /* Restore default system cursor */
-        }
-       #custom-cursor, #custom-cursor-dot {
-           display: none !important; /* Ensure they are hidden */
-       }
-    }
 
     </style>
     <link rel="icon" type="image/png" href="Assets/Vishnu.ico">
@@ -235,8 +226,8 @@
     <div class="container mx-auto px-6">
         <h2 class="text-4xl font-bold text-center mb-9">About Me</h2>
         <div class="max-w-3xl mx-auto text-lg text-gray-300 leading-relaxed">
-            <a href="https://github.com/Vishnu-tppr?tab=repositories">
-            <img src="Assets/Kiyotaka Ayanokoji-FAILED GENUIS.jpg" alt="Vishnu"
+            <a href="https://github.com/Vishnu-tppr?tab=repositories" id="about-me-link">
+            <img src="Assets/Kiyotaka Ayanokoji-FAILED GENUIS.jpg" alt="Vishnu" id="about-me-img"
                  class="w-40 h-40 rounded-full mx-auto mb-8 border-4 border-cyan-400 shadow-xl"
                  onerror="this.onerror=null;this.src='https://placehold.co/150x150/0A0F1A/E0E7FF?text=V';">
             </a>
@@ -382,15 +373,171 @@
         // --- Custom Cursor Logic ---
         const customCursor = document.getElementById('custom-cursor');
         const customCursorDot = document.getElementById('custom-cursor-dot');
-        const interactiveElements = document.querySelectorAll('.portfolio-card, .portfolio-interactive, a[href], button');
+        const interactiveElements = document.querySelectorAll('.portfolio-card, .portfolio-interactive, a[href], button, input, textarea');
+
+        // Define About Me elements early for use in hover/touch logic
+        const aboutMeLinkElement = document.getElementById('about-me-link'); // ID from HTML
+        const aboutMeImgElement = document.getElementById('about-me-img');   // ID from HTML
+
+        // Initial setup for opacity and transitions
+        customCursor.style.opacity = '0';
+        customCursorDot.style.opacity = '0';
+
+        // Append opacity transition to customCursor if not already there via inline style
+        // Base transitions are defined in CSS: width, height, background-color, border-color, box-shadow
+        const baseCursorTransitions = "width 0.2s ease-out, height 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out";
+        customCursor.style.transition = baseCursorTransitions + ", opacity 0.2s ease-out";
+        // customCursorDot already has 'transition: opacity 0.2s ease-out;' from its CSS rule.
+
+        let cursorIsVisibleByScript = false;
+
+        function updateCursorVisibility(show) {
+            if (show) {
+                customCursor.style.opacity = '1';
+                // Set dot opacity based on whether the cursor is currently glowing.
+                // This handles cases where mousemove happens while already over an interactive element.
+                if (customCursor.classList.contains('glowing')) {
+                    customCursorDot.style.opacity = '0';
+                } else {
+                    customCursorDot.style.opacity = '1';
+                }
+                cursorIsVisibleByScript = true;
+            } else {
+                customCursor.style.opacity = '0';
+                customCursorDot.style.opacity = '0';
+                cursorIsVisibleByScript = false;
+            }
+        }
+
+        // Desktop mouse move
         document.addEventListener('mousemove', (e) => {
-            customCursor.style.left = `${e.clientX}px`; customCursor.style.top = `${e.clientY}px`;
-            customCursorDot.style.left = `${e.clientX}px`; customCursorDot.style.top = `${e.clientY}px`;
+            if (!cursorIsVisibleByScript) {
+                updateCursorVisibility(true);
+            }
+            customCursor.style.left = `${e.clientX}px`;
+            customCursor.style.top = `${e.clientY}px`;
+            customCursorDot.style.left = `${e.clientX}px`;
+            customCursorDot.style.top = `${e.clientY}px`;
         });
+
+        // Desktop hover effects
         interactiveElements.forEach(el => {
-            el.addEventListener('mouseenter', () => customCursor.classList.add('glowing'));
-            el.addEventListener('mouseleave', () => customCursor.classList.remove('glowing'));
+            // If the current element is the <a> tag around the "About Me" image,
+            // we skip adding the default hover listeners here.
+            // The specific hover effect for the image itself is handled below.
+            if (el === aboutMeLinkElement) {
+                return;
+            }
+
+            // Standard hover effects for other interactive elements
+            el.addEventListener('mouseenter', () => {
+                customCursor.classList.add('glowing');
+                customCursorDot.style.opacity = '0'; // Explicitly hide dot
+            });
+            el.addEventListener('mouseleave', () => {
+                customCursor.classList.remove('glowing');
+                if (cursorIsVisibleByScript) {
+                    customCursorDot.style.opacity = '1';
+                }
+            });
         });
+
+        // Specific hover effects for the "About Me" image
+        if (aboutMeImgElement) {
+            aboutMeImgElement.addEventListener('mouseenter', () => {
+                customCursor.classList.add('glowing');
+                customCursorDot.style.opacity = '0';
+            });
+            aboutMeImgElement.addEventListener('mouseleave', () => {
+                customCursor.classList.remove('glowing');
+                if (cursorIsVisibleByScript) {
+                    customCursorDot.style.opacity = '1';
+                }
+            });
+        }
+
+        // Mobile touch events
+        function getTouchCoordinates(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            } else if (e.changedTouches && e.changedTouches.length > 0) { // For touchend
+                return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            }
+            return null;
+        }
+
+        function handleInteractionEffect(coords) {
+            if (!coords) return;
+
+            customCursor.style.left = `${coords.x}px`;
+            customCursor.style.top = `${coords.y}px`;
+            customCursorDot.style.left = `${coords.x}px`;
+            customCursorDot.style.top = `${coords.y}px`;
+
+            let elementUnderTouch = document.elementFromPoint(coords.x, coords.y);
+            let shouldGlow = false;
+
+            if (elementUnderTouch) {
+                // Case 1: Touch is directly on or within the About Me image
+                if (aboutMeImgElement && (elementUnderTouch === aboutMeImgElement || aboutMeImgElement.contains(elementUnderTouch))) {
+                    shouldGlow = true;
+                } else {
+                    // Case 2: Touch is on another interactive element,
+                    // but not the About Me link's empty area.
+                    for (const interactiveEl of interactiveElements) {
+                        // If the interactive element is the about-me-link,
+                        // we only want glow if the image itself is touched (handled by Case 1).
+                        // So, skip the link here to avoid glowing on its surrounding area.
+                        if (interactiveEl === aboutMeLinkElement) {
+                            continue;
+                        }
+                        if (interactiveEl.contains(elementUnderTouch) || interactiveEl === elementUnderTouch) {
+                            shouldGlow = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (shouldGlow) {
+                customCursor.classList.add('glowing');
+            } else {
+                customCursor.classList.remove('glowing');
+            }
+        }
+
+        document.addEventListener('touchstart', (e) => {
+            updateCursorVisibility(true);
+            const coords = getTouchCoordinates(e);
+            handleInteractionEffect(coords);
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (cursorIsVisibleByScript) { // Only move if visible (i.e., touch has started)
+                const coords = getTouchCoordinates(e);
+                handleInteractionEffect(coords);
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            customCursor.classList.remove('glowing'); // Always remove glow on touch end
+            if (e.touches.length === 0) { // Only hide if all touches are gone
+                updateCursorVisibility(false);
+            }
+        });
+
+        // --- Precise Click Feature for About Me Image ---
+        if (aboutMeLinkElement && aboutMeImgElement) {
+            // Control direct clicks on the "About Me" link:
+            // Only navigate if the image (aboutMeImgElement) itself is clicked.
+            aboutMeLinkElement.addEventListener('click', function(event) {
+                if (event.target !== aboutMeImgElement) {
+                    // Click was on the link's area but NOT the image itself
+                    event.preventDefault(); 
+                }
+                // If event.target IS aboutMeImgElement, default navigation occurs.
+            });
+        }
 
         // --- Smooth Scroll for Navigation Links ---
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
