@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vishnu's Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a202c; /* dark-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* dark-gray-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2d3748; /* dark-gray-700 */
+        }
+
+        html {
+            scroll-behavior: smooth; /* Enables smooth scrolling for anchor links */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; /* Tailwind's default sans-serif is good, Inter is a nice choice */
+            cursor: none; /* Hide the default cursor */
+            background-color: #0A0F1A; /* A very dark blue, almost black */
+            color: #E0E7FF; /* Light lavender for text */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Custom Cursor Styling */
+        #custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00E5FF; /* Bright cyan */
+            border-radius: 50%;
+            pointer-events: none; /* Allows clicks to pass through */
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: width 0.2s ease-out, height 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+            box-shadow: 0 0 5px #00E5FF;
+        }
+
+        #custom-cursor.glowing {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(0, 229, 255, 0.3);
+            border-color: #FFFFFF;
+            box-shadow: 0 0 15px #00E5FF, 0 0 25px #00E5FF, 0 0 5px #FFFFFF;
+        }
+        
+        #custom-cursor-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background-color: #00E5FF;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: opacity 0.2s ease-out;
+        }
+        #custom-cursor.glowing + #custom-cursor-dot {
+            opacity: 0;
+        }
+
+
+        /* 3D Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Behind all content */
+        }
+
+        /* Section specific styling to ensure content is above the 3D canvas */
+        .content-section {
+            position: relative;
+            z-index: 1;
+            padding-top: 100px; /* Adjust as needed for header */
+            padding-bottom: 60px;
+        }
+        
+        .portfolio-card {
+            background-color: rgba(23, 37, 60, 0.7); /* Darker, slightly transparent blue */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 229, 255, 0.3);
+        }
+
+        /* Header styling */
+        header {
+            background-color: rgba(10, 15, 26, 0.7); /* Darker than body, with transparency */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+        }
+
+        /* Ensure links and buttons also use custom cursor */
+        a, button {
+            cursor: none;
+        }
+        .social-icon {
+            width: 24px; /* Adjust size as needed */
+            height: 24px; /* Adjust size as needed */
+            fill: currentColor; /* Inherits text color */
+        }
+        /* Style for the SkillRack WEBP image icon to make it inverted black and white */
+        img.social-icon {
+            filter: grayscale(100%) invert(100%); /* Default: light monochrome icon */
+            transition: filter 0.3s ease-out; /* Smooth transition for filter changes */
+        }
+
+        /* Hover style for WEBP social icons when their parent link is hovered */
+        a:hover img.social-icon {
+            /* Make it slightly brighter and add a cyan glow to complement other hovers */
+            filter: grayscale(100%) invert(100%) brightness(1.3) drop-shadow(0 0 5px #00E5FF) drop-shadow(0 0 2px #00E5FF);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="text-gray-100">
+
+    <div id="custom-cursor"></div>
+    <div id="custom-cursor-dot"></div>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <header class="fixed top-0 left-0 right-0 z-50 shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-3xl font-bold text-cyan-400 hover:text-cyan-300 transition-colors portfolio-interactive">Portfolio</a>
+            <!-- Hamburger button - "auto-switches" to visible on small screens -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-300 hover:text-cyan-400 focus:outline-none portfolio-interactive">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Desktop Menu - "auto-switches" to hidden on small screens, visible on medium and up -->
+            <ul class="hidden md:flex space-x-6 text-lg">
+                <li><a href="#hero" class="hover:text-cyan-400 transition-colors portfolio-interactive">Home</a></li>
+                <li><a href="#portfolio" class="hover:text-cyan-400 transition-colors portfolio-interactive">Projects</a></li>
+                <li><a href="#about" class="hover:text-cyan-400 transition-colors portfolio-interactive">About</a></li>
+                <li><a href="#contact" class="hover:text-cyan-400 transition-colors portfolio-interactive">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <!-- Mobile Menu - initially hidden, toggled by JS. "auto-switches" to hidden on medium screens and up -->
+    <!-- Positioned below the fixed header. Adjust top-[4.25rem] if header height changes. -->
+    <div id="mobile-menu" class="hidden md:hidden bg-gray-800/95 backdrop-blur-md fixed top-[4.25rem] left-0 right-0 z-40 shadow-xl">
+        <ul class="flex flex-col items-center space-y-1 py-4">
+            <li><a href="#hero" class="block py-3 px-4 text-lg hover:text-cyan-400 transition-colors portfolio-interactive mobile-nav-link">Home</a></li>
+            <li><a href="#portfolio" class="block py-3 px-4 text-lg hover:text-cyan-400 transition-colors portfolio-interactive mobile-nav-link">Projects</a></li>
+            <li><a href="#about" class="block py-3 px-4 text-lg hover:text-cyan-400 transition-colors portfolio-interactive mobile-nav-link">About</a></li>
+            <li><a href="#contact" class="block py-3 px-4 text-lg hover:text-cyan-400 transition-colors portfolio-interactive mobile-nav-link">Contact</a></li>
+        </ul>
+    </div>
+
+    <div id="content-wrapper" class="relative z-10">
+
+        <section id="hero" class="min-h-screen flex items-center justify-center text-center content-section">
+            <div class="max-w-3xl mx-auto">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
+                       Vishnu
+                    </span>
+                    <br />Aspiring Developer
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-10">
+                    Turning curiosity into code, one project at a time.
+                </p>
+                <a href="#portfolio" 
+                   class="portfolio-interactive bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-4 px-10 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    Explore My Work
+                </a>
+            </div>
+        </section>
+
+        <section id="portfolio" class="py-20 content-section">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold text-center mb-16">My Projects</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    <div class="portfolio-card rounded-xl overflow-hidden p-6 group">
+                        <img src="Cam AI.png" alt="Camouflage AI Project" class="rounded-lg mb-6 w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null;this.src='https://placehold.co/600x400/17253C/E0E7FF?text=Image+Not+Found';">
+                        <h3 class="text-2xl font-semibold mb-3 text-cyan-400">Camouflage AI</h3>
+                        <p class="text-gray-300 mb-4 text-sm">An AI-powered desktop tool using YOLOv8 for precise video background removal. Replace backgrounds with colors, images, or blur effects via a CustomTkinter GUI. Solo first-year project. Tech: Python, YOLOv8, OpenCV, Torch, Pillow.</p>
+                        <a href="https://github.com/Vishnu-tppr/Camouflage-AI" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-cyan-400 hover:text-cyan-200 font-medium inline-flex items-center">View on GitHub
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </a>
+                    </div>
+                    <div class="portfolio-card rounded-xl overflow-hidden p-6 group">
+                        <img src="Nexora AI.png" alt="NEXORA AI Voice Assistant" class="rounded-lg mb-6 w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null;this.src='https://placehold.co/600x400/17253C/E0E7FF?text=Image+Not+Found';">
+                        <h3 class="text-2xl font-semibold mb-3 text-purple-400">NEXORA AI - Voice Assistant</h3>
+                        <p class="text-gray-300 mb-4 text-sm">A Python voice assistant built from scratch. Features volume control, speech recognition, browser automation, app launching, WhatsApp messaging, daily reminders, and more. Pure logic and dedication.</p>
+                        <a href="https://github.com/Vishnu-tppr/NEXORA-AI" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-purple-400 hover:text-purple-200 font-medium inline-flex items-center">View on GitHub
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </a>
+                    </div>
+                    <div class="portfolio-card rounded-xl overflow-hidden p-6 group">
+                        <img src="ME.png" alt="More Projects on GitHub" class="rounded-lg mb-6 w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null;this.src='https://placehold.co/600x400/17253C/E0E7FF?text=Image+Not+Found';">
+                        <h3 class="text-2xl font-semibold mb-3 text-pink-400">More Projects</h3>
+                        <p class="text-gray-300 mb-4 text-sm">Explore a variety of other projects, experiments, and contributions on my GitHub profile.</p>
+                        <a href="https://github.com/Vishnu-tppr" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-pink-400 hover:text-pink-200 font-medium inline-flex items-center">Visit GitHub
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+<section id="about" class="py-20 content-section">
+    <div class="container mx-auto px-6">
+        <h2 class="text-4xl font-bold text-center mb-9">About Me</h2>
+        <div class="max-w-3xl mx-auto text-lg text-gray-300 leading-relaxed">
+            <a href="https://github.com/Vishnu-tppr?tab=repositories">
+            <img src="Kiyotaka Ayanokoji-FAILED GENUIS.jpg" alt="Vishnu"
+                 class="w-40 h-40 rounded-full mx-auto mb-8 border-4 border-cyan-400 shadow-xl"
+                 onerror="this.onerror=null;this.src='https://placehold.co/150x150/0A0F1A/E0E7FF?text=V';">
+            </a>
+            <p class="mb-6">
+                I’m <strong>Vishnu</strong>, a passionate first-year CSE student who can't stop tinkering with code ⚙️❤️.
+            </p>
+
+            <p class="mb-6">
+                Whether it’s building voice assistants 🗣️, debugging tricky problems 🐞, or experimenting with AI-driven
+                video background removal 🎥✨, I’m always exploring new ways to learn and grow.
+            </p>
+
+            <p class="mb-6">
+                Right now, I’m diving deep into <strong>AI/ML with Python</strong> 🐍 and building projects that push me
+                beyond what’s taught in class — learning through doing, failing, and trying again 🚀.
+            </p>
+
+            <p class="mb-6">
+                My GitHub profile is a living journal of my journey — from experiments and challenges to lessons learned 📚 and small wins 🎉.
+            </p>
+
+            <p class="mb-6">
+                Always open to connect, learn, and collaborate on interesting projects 🤝.
+            </p>
+        </div>
+    </div>
+</section>
+
+
+        <section id="contact" class="py-20 content-section">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold text-center mb-10">Get In Touch</h2>
+                
+                <div class="mb-12 text-center">
+                    <h3 class="text-2xl font-semibold mb-6 text-cyan-300">Connect With Me</h3>
+                    <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-4">
+                        <a href="https://www.linkedin.com/in/vishnu-v-31583b327/" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-gray-300 hover:text-cyan-400 transition-colors" aria-label="LinkedIn Profile" title="LinkedIn Profile">
+                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.78-2.065V20.45h-3.55V7.433H7.117z"/></svg>
+                        </a>
+                        <a href="http://www.skillrack.com/profile/504581/fad72b7f91422b6163e1ef0c32831992d1390cbf" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-gray-300 hover:text-cyan-400 transition-colors" aria-label="SkillRack Profile" title="SkillRack Profile">
+                            <img src="skillrack.webp" alt="SkillRack Profile" class="social-icon">
+                        </a>
+                        <a href="https://github.com/Vishnu-tppr" target="_blank" rel="noopener noreferrer" class="portfolio-interactive text-gray-300 hover:text-cyan-400 transition-colors" aria-label="GitHub Profile" title="GitHub Profile">
+                            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                        </a>
+                        <a href="vishnu.tppr@gmail.com" class="portfolio-interactive text-gray-300 hover:text-cyan-400 transition-colors" aria-label="Send Email" title="Send Email">
+                           <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="max-w-xl mx-auto">
+                    <!-- 
+                        To use a service like Formspree:
+                        1. Sign up at formspree.io
+                        2. Create a new form and get your endpoint URL (e.g., https://formspree.io/f/your_unique_code)
+                        3. Replace the '#' in action below with your Formspree endpoint URL. (DONE!)
+                        4. Change method to "POST".
+                        5. Remove the `id="contact-form"` and the JavaScript related to `contactForm.addEventListener`.
+                    -->
+                    <form action="https://formspree.io/f/mgvkjwkw" method="POST" class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-cyan-400">Full Name</label>
+                            <input type="text" name="name" id="name" autocomplete="name" required
+                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-cyan-400">Your Email</label>
+                            <input type="email" name="email" id="email" autocomplete="email" required
+                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-cyan-400">Message</label>
+                            <textarea id="message" name="message" rows="4" required
+                                      class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"></textarea>
+                        </div>
+                        <div>
+                            <button type="submit"
+                                    class="portfolio-interactive w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 transition-all duration-300 transform hover:scale-105">
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Formspree will handle success/error messages, so this div is no longer strictly needed -->
+                    <!-- <div id="form-status" class="mt-4 text-center text-sm"></div> -->
+                </div> 
+            </div>
+        </section>
+
+        <footer class="py-12 text-center text-gray-400 content-section border-t border-gray-700/50">
+            <p>&copy; <span id="current-year"></span> Vishnu All rights reserved.</p>
+            <p class="text-sm">Designed with <span class="text-red-500">&hearts;</span> Vishnu</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // --- Three.js Scene Setup ---
+        let scene, camera, renderer, particles;
+        const particleCount = 5000; // Number of particles
+        const mouse = new THREE.Vector2(); // To store mouse position
+        let targetCameraZ = 1000; // Target Z position for camera based on scroll
+        const initialCameraZ = 1000;
+
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = initialCameraZ;
+            const canvas = document.getElementById('bg-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const particleGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const color1 = new THREE.Color(0x00E5FF); const color2 = new THREE.Color(0xA050FF); const color3 = new THREE.Color(0xFF4081);
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 2000; positions[i * 3 + 1] = (Math.random() - 0.5) * 2000; positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+                let particleColor; const randColor = Math.random();
+                if (randColor < 0.4) particleColor = color1; else if (randColor < 0.7) particleColor = color2; else particleColor = color3;
+                colors[i * 3] = particleColor.r; colors[i * 3 + 1] = particleColor.g; colors[i * 3 + 2] = particleColor.b;
+            }
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            const particleMaterial = new THREE.PointsMaterial({ size: 3, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false });
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+            scene.add(ambientLight);
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('scroll', onScroll, false);
+            animate();
+        }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+        function onScroll() {
+            const scrollY = window.scrollY; const maxScroll = document.body.scrollHeight - window.innerHeight; const scrollFraction = scrollY / Math.max(1, maxScroll);
+            targetCameraZ = initialCameraZ - scrollFraction * (initialCameraZ + 500);
+            if (particles) { particles.rotation.y = scrollFraction * Math.PI * 0.5; particles.rotation.x = scrollFraction * Math.PI * 0.2; }
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            camera.position.z += (targetCameraZ - camera.position.z) * 0.03;
+            scene.rotation.y = mouse.x * 0.05; scene.rotation.x = -mouse.y * 0.05;
+            camera.position.x += (mouse.x * 50 - camera.position.x) * 0.02; camera.position.y += (-mouse.y * 50 - camera.position.y) * 0.02;
+            renderer.render(scene, camera);
+        }
+
+        // --- Custom Cursor Logic ---
+        const customCursor = document.getElementById('custom-cursor');
+        const customCursorDot = document.getElementById('custom-cursor-dot');
+        const interactiveElements = document.querySelectorAll('.portfolio-card, .portfolio-interactive, a[href], button');
+        document.addEventListener('mousemove', (e) => {
+            customCursor.style.left = `${e.clientX}px`; customCursor.style.top = `${e.clientY}px`;
+            customCursorDot.style.left = `${e.clientX}px`; customCursorDot.style.top = `${e.clientY}px`;
+        });
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => customCursor.classList.add('glowing'));
+            el.addEventListener('mouseleave', () => customCursor.classList.remove('glowing'));
+        });
+
+        // --- Smooth Scroll for Navigation Links ---
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault(); const targetId = this.getAttribute('href'); const targetElement = document.querySelector(targetId);
+                if (targetElement) { targetElement.scrollIntoView({ behavior: 'smooth' }); }
+            });
+        });
+        
+        // --- Update current year in footer ---
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // --- Contact Form Handler (mailto:) --- (REMOVED - Formspree handles submissions now)
+        // The JavaScript code that handled the mailto: link has been removed.
+
+        // Initialize Three.js scene when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof THREE !== 'undefined') {
+                initThreeJS();
+            } else {
+                console.error("Three.js library not loaded. Ensure it's included before this script.");
+                const canvasElement = document.getElementById('bg-canvas');
+                if(canvasElement) {
+                    canvasElement.style.backgroundColor = 'transparent'; 
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
