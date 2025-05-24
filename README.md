@@ -49,8 +49,8 @@ To run this portfolio locally, follow these steps:
     ```bash
     cd Vishnus-Portfolio
     ```
-3.  **Open `index.html`:**
-    Simply open the `index.html` file in your web browser. There's no build step required for this static site. 🌐
+3.  **Open `Portfolio.html`:**
+    Simply open the `Portfolio.html` file in your web browser. There's no build step required for this static site. 🌐
 
 ## Contact 🤝
 
