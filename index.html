@@ -128,6 +128,16 @@
             /* Make it slightly brighter and add a cyan glow to complement other hovers */
             filter: grayscale(100%) invert(100%) brightness(1.3) drop-shadow(0 0 5px #00E5FF) drop-shadow(0 0 2px #00E5FF);
         }
+         /* Hide custom cursor and restore default cursor on smaller (likely touch) screens */
+        @media (max-width: 767px) { /* Corresponds to Tailwind's `md` breakpoint */
+        body {
+            cursor: auto; /* Restore default system cursor */
+        }
+       #custom-cursor, #custom-cursor-dot {
+           display: none !important; /* Ensure they are hidden */
+       }
+    }
+
     </style>
     <link rel="icon" type="image/png" href="Assets/Vishnu.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
