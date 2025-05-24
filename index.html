@@ -300,21 +300,21 @@
                 </div>
 
                 <div class="max-w-xl mx-auto">
-                    <form action="https://formspree.io/f/mgvkjwkw" method="POST" class="space-y-6">
+                     <form action="https://formspree.io/f/mgvkjwkw" method="POST" class="space-y-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-cyan-400">Full Name</label>
                             <input type="text" name="name" id="name" autocomplete="name" required
-                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm">
+                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm placeholder-gray-400" placeholder="Your Name">
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-cyan-400">Your Email</label>
                             <input type="email" name="email" id="email" autocomplete="email" required
-                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm">
+                                   class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm placeholder-gray-400" placeholder="you@example.com">
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-medium text-cyan-400">Message</label>
                             <textarea id="message" name="message" rows="4" required
-                                      class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"></textarea>
+                                      class="portfolio-interactive mt-1 block w-full bg-gray-700/50 border-gray-600 rounded-md shadow-sm py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm placeholder-gray-400" placeholder="Your message..."></textarea>
                         </div>
                         <div>
                             <button type="submit"
@@ -323,13 +323,13 @@
                             </button>
                         </div>
                     </form>
-                </div> 
+                </div>
             </div>
         </section>
 
-        <footer class="py-12 text-center text-gray-400 content-section border-t border-gray-700/50">
-            <p>&copy; <span id="current-year"></span> Vishnu All rights reserved.</p>
-            <p class="text-sm">Designed with <span class="text-red-500">&hearts;</span> Vishnu</p>
+        <footer class="py-8 sm:py-12 text-center text-gray-400 content-section border-t border-gray-700/50">
+            <p>&copy; <span id="current-year"></span> Vishnu. All rights reserved.</p>
+            <p class="text-sm">Designed with <span class="text-red-500">&hearts;</span> Three.js by Vishnu</p>
         </footer>
     </div>
 
@@ -599,7 +599,58 @@
                 }
             }
         });
+        <!-- Fixes and improvements to mobile cursor tracking and UI experience -->
+<script>
+  function isMobileDevice() {
+    return /Mobi|Android|iPhone/i.test(navigator.userAgent);
+  }
 
+  if (isMobileDevice()) {
+    // Hide the custom cursor elements
+    const customCursor = document.getElementById('custom-cursor');
+    const customCursorDot = document.getElementById('custom-cursor-dot');
+    if (customCursor) customCursor.style.display = 'none';
+    if (customCursorDot) customCursorDot.style.display = 'none';
+
+    // Remove custom cursor logic entirely
+    document.removeEventListener('touchstart', updateCursorVisibility);
+    document.removeEventListener('touchmove', updateCursorVisibility);
+    document.removeEventListener('touchend', updateCursorVisibility);
+
+    // Optional: Add touch-based UI improvements
+    document.body.style.cursor = 'auto';
+
+    // Optimize mobile layout spacing
+    document.querySelectorAll('.portfolio-card').forEach(card => {
+      card.style.marginBottom = '24px';
+      card.style.padding = '16px';
+    });
+
+    // Improve tap targets on mobile
+    document.querySelectorAll('a, button').forEach(el => {
+      el.style.minHeight = '44px';
+      el.style.padding = '12px 16px';
+    });
+  }
+</script>
+
+<style>
+  /* Responsive Tweaks for Mobile */
+  @media (max-width: 768px) {
+    .text-5xl {
+      font-size: 2rem;
+    }
+    .text-4xl {
+      font-size: 1.5rem;
+    }
+    .text-2xl {
+      font-size: 1.25rem;
+    }
+    .portfolio-card img {
+      height: 160px !important;
+    }
+  }
+</style>
     </script>
 </body>
 </html>
