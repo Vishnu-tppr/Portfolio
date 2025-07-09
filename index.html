@@ -180,24 +180,27 @@
         }
         
         /* New Gradient Border Effect */
-        .portfolio-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 0.75rem; /* Corresponds to rounded-xl */
-            padding: 2px;
-            background: linear-gradient(45deg, #00E5FF, #A050FF, #FF4081);
-            -webkit-mask: 
-                linear-gradient(#fff 0 0) content-box, 
-                linear-gradient(#fff 0 0);
-            -webkit-mask-composite: exclude; 
-            mask-composite: exclude; 
-            opacity: 0;
-            transition: opacity 0.4s ease-out;
-        }
+        
+.portfolio-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0.75rem; /* Corresponds to rounded-xl */
+    padding: 2px;
+    background: linear-gradient(45deg, #00E5FF, #A050FF, #FF4081);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: exclude; 
+    mask-composite: exclude; 
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    pointer-events: none; /* ADDED THIS LINE TO ALLOW CLICKS TO PASS THROUGH */
+}
+
 
         .portfolio-card:hover::before {
             opacity: 1;
