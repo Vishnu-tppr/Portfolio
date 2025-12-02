@@ -330,6 +330,20 @@
             font-size: 2rem; /* Tailwind: text-3xl */
             margin-bottom: 3rem; /* Tailwind: mb-12 */
         }
+        /* Grid layout for portfolio container on mobile in desktop mode */
+        #portfolio > .container > .flex.flex-wrap {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-areas:
+                "proj1 proj2 proj3"
+                "proj4 proj5 .";
+            gap: 10px;
+        }
+        .portfolio-card:nth-child(1) { grid-area: proj1; }
+        .portfolio-card:nth-child(2) { grid-area: proj2; }
+        .portfolio-card:nth-child(3) { grid-area: proj3; }
+        .portfolio-card:nth-child(4) { grid-area: proj4; }
+        .portfolio-card:nth-child(5) { grid-area: proj5; }
         .portfolio-card {
             padding: 1rem; /* Tailwind: p-4 */
         }
