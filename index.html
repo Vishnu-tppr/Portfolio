@@ -680,540 +680,271 @@
             document.body.classList.add('is-touch-device'); // Optional: for CSS targeting
         }
 
-         // --- Three.js Scene Setup ---
-
-587	587	
+             // --- Three.js Scene Setup ---
         let scene, camera, renderer, particles;
-588	588	
         const particleCount = 5000; // Number of particles
-589	589	
         const mouse = new THREE.Vector2(); // To store mouse position
-590	590	
         let targetCameraZ = 1000; // Target Z position for camera based on scroll
-591	591	
         const initialCameraZ = 1000;
-592	592	
 
-593	593	
         function initThreeJS() {
-594	594	
             scene = new THREE.Scene();
-595	595	
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-596	596	
             camera.position.z = initialCameraZ;
-597	597	
             const canvas = document.getElementById('bg-canvas');
-598	598	
             renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-599	599	
             renderer.setSize(window.innerWidth, window.innerHeight);
-600	600	
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-601	601	
             const particleGeometry = new THREE.BufferGeometry();
-602	602	
             const positions = new Float32Array(particleCount * 3);
-603	603	
             const colors = new Float32Array(particleCount * 3);
-604	604	
             const color1 = new THREE.Color(0x00E5FF); const color2 = new THREE.Color(0xA050FF); const color3 = new THREE.Color(0xFF4081);
-605	605	
             for (let i = 0; i < particleCount; i++) {
-606	606	
                 positions[i * 3] = (Math.random() - 0.5) * 2000; positions[i * 3 + 1] = (Math.random() - 0.5) * 2000; positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
-607	607	
                 let particleColor; const randColor = Math.random();
-608	608	
                 if (randColor < 0.4) particleColor = color1; else if (randColor < 0.7) particleColor = color2; else particleColor = color3;
-609	609	
                 colors[i * 3] = particleColor.r; colors[i * 3 + 1] = particleColor.g; colors[i * 3 + 2] = particleColor.b;
-610	610	
             }
-611	611	
             particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-612	612	
             particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-613	613	
             const particleMaterial = new THREE.PointsMaterial({ size: 3, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false });
-614	614	
             particles = new THREE.Points(particleGeometry, particleMaterial);
-615	615	
             scene.add(particles);
-616	616	
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-617	617	
             scene.add(ambientLight);
-618	618	
             window.addEventListener('resize', onWindowResize, false);
-619	619	
             document.addEventListener('mousemove', onMouseMove, false);
-620	620	
             window.addEventListener('scroll', onScroll, false);
-621	621	
             animate();
-622	622	
         }
-623	623	
         function onWindowResize() {
-624	624	
             camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-625	625	
         }
-626	626	
         function onMouseMove(event) {
-627	627	
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-628	628	
         }
-629	629	
         function onScroll() {
-630	630	
             const scrollY = window.scrollY; const maxScroll = document.body.scrollHeight - window.innerHeight; const scrollFraction = scrollY / Math.max(1, maxScroll);
-631	631	
             targetCameraZ = initialCameraZ - scrollFraction * (initialCameraZ + 500);
-632	632	
             if (particles) { particles.rotation.y = scrollFraction * Math.PI * 0.5; particles.rotation.x = scrollFraction * Math.PI * 0.2; }
-633	633	
         }
-634	634	
         function animate() {
-635	635	
             requestAnimationFrame(animate);
-636	636	
             camera.position.z += (targetCameraZ - camera.position.z) * 0.03;
-637	637	
             scene.rotation.y = mouse.x * 0.05; scene.rotation.x = -mouse.y * 0.05;
-638	638	
             camera.position.x += (mouse.x * 50 - camera.position.x) * 0.02; camera.position.y += (-mouse.y * 50 - camera.position.y) * 0.02;
-639	639	
             renderer.render(scene, camera);
-640	640	
         }
-641	641	
 
-642	642	
         // --- Custom Cursor Logic (Desktop) & Mobile Interaction Handling ---
-643	643	
         const customCursor = document.getElementById('custom-cursor');
-644	644	
         const customCursorDot = document.getElementById('custom-cursor-dot');
-645	645	
         const interactiveElements = document.querySelectorAll('.portfolio-card, .portfolio-interactive, a[href], button, input, textarea');
-646	646	
         const aboutMeLinkElement = document.getElementById('about-me-link');
-647	647	
         const aboutMeImgElement = document.getElementById('about-me-img');
-648	648	
 
-649	649	
         let cursorIsVisibleByScript = false; // Primarily for desktop custom cursor
-650	650	
         let lastTouchedInteractiveElement = null; // For mobile touch tracking
-651	651	
 
-652	652	
         if (IS_PRIMARY_TOUCH_DEVICE) {
-653	653	
             // On touch devices, ensure custom cursor is hidden and manage touch interactions
-654	654	
             if (customCursor) customCursor.style.display = 'none';
-655	655	
             if (customCursorDot) customCursorDot.style.display = 'none';
-656	656	
             if (document.body) document.body.style.cursor = 'auto'; // Ensure default system cursor if any
-657	657	
 
-658	658	
             function getTouchCoordinates(e) {
-659	659	
                 if (e.touches && e.touches.length > 0) {
-660	660	
                     return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-661	661	
                 } else if (e.changedTouches && e.changedTouches.length > 0) { // For touchend
-662	662	
                     return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-663	663	
                 }
-664	664	
                 return null;
-665	665	
             }
-666	666	
 
-667	667	
             function handleMobileInteraction(coords, eventType) {
-668	668	
                 if (!coords) return;
-669	669	
 
-670	670	
                 let elementUnderTouch = document.elementFromPoint(coords.x, coords.y);
-671	671	
                 let currentInteractiveElement = null;
-672	672	
 
-673	673	
                 if (elementUnderTouch) {
-674	674	
                     for (const interactiveEl of interactiveElements) {
-675	675	
                         if (interactiveEl.contains(elementUnderTouch) || interactiveEl === elementUnderTouch) {
-676	676	
                             currentInteractiveElement = interactiveEl;
-677	677	
                             break;
-678	678	
                         }
-679	679	
                     }
-680	680	
                 }
-681	681	
 
-682	682	
                 if (lastTouchedInteractiveElement && lastTouchedInteractiveElement !== currentInteractiveElement) {
-683	683	
                     lastTouchedInteractiveElement.classList.remove('mobile-touch-active');
-684	684	
                 }
-685	685	
 
-686	686	
                 if (currentInteractiveElement) {
-687	687	
                     if (eventType === 'touchstart' || eventType === 'touchmove') {
-688	688	
                         if (!currentInteractiveElement.classList.contains('mobile-touch-active')) {
-689	689	
                             currentInteractiveElement.classList.add('mobile-touch-active');
-690	690	
                         }
-691	691	
                     } else if (eventType === 'touchend') {
-692	692	
                         currentInteractiveElement.classList.remove('mobile-touch-active');
-693	693	
                     }
-694	694	
                     lastTouchedInteractiveElement = currentInteractiveElement;
-695	695	
                 } else if (eventType === 'touchend' && lastTouchedInteractiveElement) {
-696	696	
                     lastTouchedInteractiveElement.classList.remove('mobile-touch-active');
-697	697	
                     lastTouchedInteractiveElement = null;
-698	698	
                 }
-699	699	
             }
-700	700	
 
-701	701	
             document.addEventListener('touchstart', (e) => {
-702	702	
                 const coords = getTouchCoordinates(e);
-703	703	
                 handleMobileInteraction(coords, 'touchstart');
-704	704	
             }, { passive: true });
-705	705	
 
-706	706	
             document.addEventListener('touchmove', (e) => {
-707	707	
                 const coords = getTouchCoordinates(e);
-708	708	
                 handleMobileInteraction(coords, 'touchmove');
-709	709	
             }, { passive: true });
-710	710	
 
-711	711	
             document.addEventListener('touchend', (e) => {
-712	712	
                 // For touchend, rely on lastTouchedInteractiveElement as elementFromPoint might be unreliable
-713	713	
                 if (lastTouchedInteractiveElement) {
-714	714	
                     lastTouchedInteractiveElement.classList.remove('mobile-touch-active');
-715	715	
                 }
-716	716	
                 lastTouchedInteractiveElement = null; // Reset
-717	717	
             });
-718	718	
 
-719	719	
         } else { // Desktop-specific custom cursor logic
-720	720	
             if (customCursor) {
-721	721	
                 customCursor.style.opacity = '0'; // Initial state for desktop
-722	722	
                 const baseCursorTransitions = "width 0.2s ease-out, height 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out";
-723	723	
                 customCursor.style.transition = baseCursorTransitions + ", opacity 0.2s ease-out";
-724	724	
             }
-725	725	
             if (customCursorDot) customCursorDot.style.opacity = '0'; // Initial state for desktop
-726	726	
 
-727	727	
             function updateDesktopCursorVisibility(show) {
-728	728	
                 if (!customCursor || !customCursorDot) return;
-729	729	
                 if (show) {
-730	730	
                     customCursor.style.opacity = '1';
-731	731	
                     if (customCursor.classList.contains('glowing')) {
-732	732	
                         customCursorDot.style.opacity = '0';
-733	733	
                     } else {
-734	734	
                         customCursorDot.style.opacity = '1';
-735	735	
                     }
-736	736	
                     customCursorDot.style.display = 'block';
-737	737	
                     cursorIsVisibleByScript = true;
-738	738	
                 } else {
-739	739	
                     customCursor.style.opacity = '0';
-740	740	
                     customCursorDot.style.opacity = '0';
-741	741	
                     cursorIsVisibleByScript = false;
-742	742	
                 }
-743	743	
             }
-744	744	
 
-745	745	
             document.addEventListener('mousemove', (e) => {
-746	746	
                 if (!cursorIsVisibleByScript) {
-747	747	
                     updateDesktopCursorVisibility(true);
-748	748	
                 }
-749	749	
                 if (customCursor) {
-750	750	
                     customCursor.style.left = `${e.clientX}px`;
-751	751	
                     customCursor.style.top = `${e.clientY}px`;
-752	752	
                 }
-753	753	
                 if (customCursorDot) {
-754	754	
                     customCursorDot.style.left = `${e.clientX}px`;
-755	755	
                     customCursorDot.style.top = `${e.clientY}px`;
-756	756	
                 }
-757	757	
             });
-758	758	
 
-759	759	
             interactiveElements.forEach(el => {
-760	760	
                 if (el === aboutMeLinkElement) return; // Handled by image specific listener
-761	761	
 
-762	762	
                 el.addEventListener('mouseenter', () => {
-763	763	
                     if (customCursor) customCursor.classList.add('glowing');
-764	764	
                     if (customCursorDot) customCursorDot.style.opacity = '0';
-765	765	
                 });
-766	766	
                 el.addEventListener('mouseleave', () => {
-767	767	
                     if (customCursor) customCursor.classList.remove('glowing');
-768	768	
                     if (customCursorDot && cursorIsVisibleByScript) {
-769	769	
                         customCursorDot.style.opacity = '1';
-770	770	
                     }
-771	771	
                 });
-772	772	
             });
-773	773	
 
-774	774	
             if (aboutMeImgElement) {
-775	775	
                 aboutMeImgElement.addEventListener('mouseenter', () => {
-776	776	
                     if (customCursor) customCursor.classList.add('glowing');
-777	777	
                     if (customCursorDot) customCursorDot.style.opacity = '0';
-778	778	
                 });
-779	779	
                 aboutMeImgElement.addEventListener('mouseleave', () => {
-780	780	
                     if (customCursor) customCursor.classList.remove('glowing');
-781	781	
                     if (customCursorDot && cursorIsVisibleByScript) {
-782	782	
                         customCursorDot.style.opacity = '1';
-783	783	
                     }
-784	784	
                 });
-785	785	
             }
-786	786	
 
-787	787	
             document.addEventListener('mouseleave', () => updateDesktopCursorVisibility(false));
-788	788	
             // document.addEventListener('mouseenter', () => updateDesktopCursorVisibility(true)); // mousemove handles this
-789	789	
         }
-790	790	
 
-791	791	
         // --- Precise Click Feature for About Me Image ---
-792	792	
         if (aboutMeLinkElement && aboutMeImgElement) {
-793	793	
             aboutMeLinkElement.addEventListener('click', function(event) {
-794	794	
                 if (event.target !== aboutMeImgElement) {
-795	795	
                     event.preventDefault(); 
-796	796	
                 }
-797	797	
             });
-798	798	
         }
-799	799	
 
-800	800	
         // --- Smooth Scroll for Navigation Links ---
-801	801	
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-802	802	
             anchor.addEventListener('click', function (e) {
-803	803	
                 e.preventDefault(); const targetId = this.getAttribute('href'); const targetElement = document.querySelector(targetId);
-804	804	
                 if (targetElement) { targetElement.scrollIntoView({ behavior: 'smooth' }); }
-805	805	
             });
-806	806	
         });
-807	807	
 
-808	808	
         // --- Hamburger Menu Toggle ---
-809	809	
         const mobileMenuButton = document.getElementById('mobile-menu-button');
-810	810	
         const mobileMenu = document.getElementById('mobile-menu');
-811	811	
         const mobileNavLinks = document.querySelectorAll('#mobile-menu a.mobile-nav-link');
-812	812	
 
-813	813	
         if (mobileMenuButton && mobileMenu) {
-814	814	
             mobileMenuButton.addEventListener('click', () => {
-815	815	
                 const isHidden = mobileMenu.classList.toggle('hidden');
-816	816	
                 mobileMenuButton.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
-817	817	
                 mobileMenu.setAttribute('aria-hidden', isHidden ? 'true' : 'false');
-818	818	
             });
-819	819	
 
-820	820	
             mobileNavLinks.forEach(link => {
-821	821	
                 link.addEventListener('click', () => {
-822	822	
                     mobileMenu.classList.add('hidden');
-823	823	
                     mobileMenuButton.setAttribute('aria-expanded', 'false');
-824	824	
                     mobileMenu.setAttribute('aria-hidden', 'true');
-825	825	
                 });
-826	826	
             });
-827	827	
         }
-828	828	
 
-829	829	
         // --- Update current year in footer ---
-830	830	
         const currentYearSpan = document.getElementById('current-year');
-831	831	
         if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
-832	832	
 
-833	833	
         document.addEventListener('DOMContentLoaded', () => {
-834	834	
             // Initialize Three.js background
-835	835	
             if (typeof THREE !== 'undefined') {
-836	836	
                 initThreeJS();
-837	837	
             } else {
-838	838	
                 console.error("Three.js library not loaded. Ensure it's included before this script.");
-839	839	
                 const canvasElement = document.getElementById('bg-canvas');
-840	840	
                 if(canvasElement) {
-841	841	
                     canvasElement.style.backgroundColor = 'transparent'; 
-842	842	
                 }
-843	843	
             }
-844	844	
             // Final check to hide custom cursor on touch devices if missed by initial JS execution
-845	845	
             if (IS_PRIMARY_TOUCH_DEVICE) {
-846	846	
                 if (customCursor) customCursor.style.display = 'none';
-847	847	
                 if (customCursorDot) customCursorDot.style.display = 'none';
-848	848	
                 if (document.body) document.body.style.cursor = 'auto';
-849	849	
             }
-850	850	
         });
-851	851	
     </script>
-852	852	
 </body>
-853	853	
-</html>
 </html>
